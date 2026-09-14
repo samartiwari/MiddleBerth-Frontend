@@ -13,7 +13,7 @@ python3 -m http.server 5173
 ```
 
 Then open http://localhost:5173. It talks to the live API at
-`https://middleberth.samartiwari.me`. To use a MiddleBerth running on this machine instead:
+`https://api.middleberth.samartiwari.me`. To use a MiddleBerth running on this machine instead:
 
     http://localhost:5173/?api=http://localhost:8089
 
