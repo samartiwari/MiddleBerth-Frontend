@@ -508,7 +508,8 @@
       order_id: order.orderId,
       name: 'MiddleBerth',
       description: booking.train + ' ' + booking.name + ' · ' + booking.coachClass + ' · ' + niceDate(booking.date),
-      prefill: { name: booking.passenger.name, email: booking.passenger.email, contact: booking.passenger.phone },
+      // Razorpay only accepts the number with its country code; without it, checkout asks again.
+      prefill: { name: booking.passenger.name, email: booking.passenger.email, contact: '+91' + booking.passenger.phone },
       theme: { color: '#14215c' },
       handler: (reply) => {
         log('RZP', 'checkout', 'paid', null, 'payment ' + reply.razorpay_payment_id + ' captured; waiting for Razorpay\'s signed webhook to reach payment-service');
