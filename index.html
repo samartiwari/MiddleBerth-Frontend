@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MiddleBerth · tatkal booking that never double-books</title>
+  <meta name="description" content="Live demo of MiddleBerth, a tatkal train-booking backend built as five Spring Boot microservices. Book a berth, pay with a Razorpay test card, and watch every API call it makes.">
+  <meta name="theme-color" content="#0b1437">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+  <script src="config.js"></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <header class="hero">
+    <nav class="nav wrap" aria-label="Main">
+      <a class="brand" href="#top"><img src="favicon.svg" alt="" width="30" height="30"><span>MiddleBerth</span></a>
+      <div class="nav-links">
+        <a href="#how">How it works</a>
+        <a class="btn btn-glass" data-github href="https://github.com/samartiwari/MiddleBerth" target="_blank" rel="noopener">
+          <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38v-1.33c-2.23.48-2.7-1.07-2.7-1.07-.36-.92-.89-1.17-.89-1.17-.73-.5.06-.49.06-.49.8.06 1.23.83 1.23.83.72 1.22 1.87.87 2.33.66.07-.52.28-.87.5-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.6 7.6 0 0 1 4 0c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48v2.2c0 .21.15.46.55.38A8 8 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
+          GitHub
+        </a>
+      </div>
+    </nav>
+    <div class="hero-body wrap" id="top">
+      <p class="eyebrow"><span class="pulse" aria-hidden="true"></span> Live demo · tatkal train booking</p>
+      <h1>Lakhs of people, one berth each.<br><span>Never the same berth twice.</span></h1>
+      <p class="lede">MiddleBerth is a backend built as five Spring Boot microservices around Kafka, PostgreSQL and Redis. Book a real berth below, pay with a Razorpay test card, and watch every call it makes.</p>
+      <ul class="stats">
+        <li><strong>1,000</strong><span>bookings a second, sustained on one laptop</span></li>
+        <li><strong>0</strong><span>double bookings, checked after every load test</span></li>
+        <li><strong>4,000</strong><span>people clicking at once for 480 berths, all answered</span></li>
+      </ul>
+    </div>
+  </header>
+
+  <main class="wrap layout">
+    <section class="flow" aria-label="Book a berth">
+
+      <article class="card step" id="step-account">
+        <header class="step-head">
+          <span class="step-no">1</span>
+          <div>
+            <h2>Your account</h2>
+            <p class="muted">A real account. The password is hashed with BCrypt, and five wrong tries lock it for fifteen minutes.</p>
+          </div>
+        </header>
+        <div id="signed-out">
+          <div class="tabs" role="tablist" aria-label="Account">
+            <button type="button" class="tab is-active" data-mode="signup" role="tab" aria-selected="true">Sign up</button>
+            <button type="button" class="tab" data-mode="login" role="tab" aria-selected="false">Log in</button>
+          </div>
+          <form id="auth-form" class="form grid-2" novalidate>
+            <label>Email
+              <input type="email" name="email" autocomplete="email" required maxlength="120" placeholder="you@example.com">
+            </label>
+            <label>Password
+              <input type="password" name="password" autocomplete="new-password" required minlength="8" maxlength="100" placeholder="At least 8 characters">
+            </label>
+            <button class="btn btn-primary span-2" type="submit" id="auth-submit">Create account</button>
+            <p class="form-error span-2" id="auth-error" role="alert" hidden></p>
+          </form>
+        </div>
+        <div id="signed-in" class="signed-in" hidden>
+          <span class="avatar" aria-hidden="true"></span>
+          <div class="signed-in-who">
+            <p class="muted small">Signed in as</p>
+            <p id="signed-in-email" class="strong"></p>
+          </div>
+          <button type="button" class="btn btn-quiet" id="sign-out">Sign out</button>
+        </div>
+      </article>
+
+      <article class="card step" id="step-train">
+        <header class="step-head">
+          <span class="step-no">2</span>
+          <div>
+            <h2>Pick a train</h2>
+            <p class="muted">Tatkal opens one day ahead. These counts come from search-service, which reads Redis and never touches the booking database.</p>
+          </div>
+        </header>
+        <div class="dates" id="dates" role="tablist" aria-label="Travel date"></div>
+        <p class="hint" id="date-hint" hidden></p>
+        <div class="trains" id="trains">
+          <div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>
+        </div>
+      </article>
+
+      <article class="card step" id="step-book">
+        <header class="step-head">
+          <span class="step-no">3</span>
+          <div>
+            <h2>Book and pay</h2>
+            <p class="muted" id="book-summary">Choose a train and class above.</p>
+          </div>
+        </header>
+        <form id="book-form" class="form grid-2" novalidate hidden>
+          <label>Passenger name
+            <input name="name" required maxlength="80" autocomplete="name" placeholder="Asha Verma">
+          </label>
+          <label>Mobile
+            <input name="phone" required inputmode="numeric" maxlength="10" autocomplete="tel-national" placeholder="9876543210">
+          </label>
+          <label class="span-2">Email for the ticket
+            <input name="email" type="email" required maxlength="120" autocomplete="email" placeholder="asha@example.com">
+          </label>
+          <button class="btn btn-primary span-2" type="submit" id="book-submit">Book now</button>
+          <p class="form-error span-2" id="book-error" role="alert" hidden></p>
+        </form>
+        <div id="journey" class="journey" hidden aria-live="polite"></div>
+      </article>
+    </section>
+
+    <aside class="side">
+      <section class="console" aria-label="API calls made by this page">
+        <header class="console-head">
+          <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
+          <h2>Under the hood</h2>
+          <span class="live"><i aria-hidden="true"></i>live</span>
+        </header>
+        <p class="console-sub">Every request this page makes to <code id="api-host">the API</code>, newest first.</p>
+        <p class="console-empty" id="console-empty">Waiting for the first call…</p>
+        <ol class="console-lines" id="console-lines"></ol>
+      </section>
+
+      <section class="card testcard" aria-label="Test payment details">
+        <h3>Paying? It is Razorpay test mode</h3>
+        <p class="muted small">No real money moves. When the checkout opens, use:</p>
+        <dl class="kv">
+          <dt>Card</dt>
+          <dd><code>4100 2800 0000 1007</code><button type="button" class="copy" data-copy="4100280000001007">Copy</button></dd>
+          <dt>Expiry, CVV</dt>
+          <dd>any future date, any 3 digits</dd>
+          <dt>UPI</dt>
+          <dd><code>success@razorpay</code><button type="button" class="copy" data-copy="success@razorpay">Copy</button></dd>
+        </dl>
+      </section>
+    </aside>
+  </main>
+
+  <section class="how wrap" id="how" aria-labelledby="how-title">
+    <h2 id="how-title">How a booking works</h2>
+    <ol class="pipeline">
+      <li><strong>nginx</strong><span>HTTPS, the only way in</span></li>
+      <li><strong>gateway</strong><span>checks the JWT, limits each user</span></li>
+      <li><strong>booking-service</strong><span>checks at the door, replies 202</span></li>
+      <li><strong>Kafka</strong><span>15 partitions, keyed by train</span></li>
+      <li><strong>booking thread</strong><span>claims a berth in PostgreSQL</span></li>
+      <li><strong>payment-service</strong><span>Razorpay order, signed webhook</span></li>
+    </ol>
+    <div class="how-grid">
+      <article class="card">
+        <h3>Why it cannot double-book</h3>
+        <p>Each claim locks its row with <code>FOR UPDATE SKIP LOCKED</code>, so claims arriving together step over each other instead of taking the same berth. A repeated request is stopped by a unique constraint, never by checking first.</p>
+      </article>
+      <article class="card">
+        <h3>Why the answer comes a moment later</h3>
+        <p>The request only joins a queue. Holding a thread and a database connection for everyone waiting would exhaust the pool in the first second of a rush, so the page asks for its answer, and the server says when to ask again.</p>
+      </article>
+      <article class="card">
+        <h3>What load testing found</h3>
+        <p>One thread doing all the booking, a lock inside a Redis library, a session made on every request, nginx running out of ports, and a query reading 172,512 rows to claim one berth. Each one fixed and measured.</p>
+      </article>
+    </div>
+  </section>
+
+  <footer class="footer wrap">
+    <p>Built by <a href="https://github.com/samartiwari" target="_blank" rel="noopener">@samartiwari</a> · <a data-github href="https://github.com/samartiwari/MiddleBerth" target="_blank" rel="noopener">source code and load-test results</a></p>
+    <p class="muted small">This demo runs on a 2-core ARM server. The performance numbers come from load tests on a laptop, not from this server.</p>
+  </footer>
+</body>
+</html>
